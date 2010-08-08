@@ -60,6 +60,7 @@ class SnapOpenPluginInstance:
     self._show_hidden = False # TODO: not used
     self._suggestion = None
     self._liststore = None
+    self._last_pattern = ""
     self._init_glade()
     self._insert_menu()
 
@@ -136,6 +137,9 @@ class SnapOpenPluginInstance:
       self.open_selected_item( event )
       return
     pattern = self._glade_entry_name.get_text()
+    if pattern == self._last_pattern:
+      return
+    self._last_pattern = pattern
     suggestions = self._suggestion.suggest(pattern)
     self._liststore.clear()
     maxcount = 0
