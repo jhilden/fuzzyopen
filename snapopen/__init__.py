@@ -109,6 +109,7 @@ class SnapOpenPluginInstance:
     self._glade_entry_name.connect("key-release-event", self.on_pattern_entry)
     #setup list field
     self._hit_list = self._snapopen_glade.get_widget( "hit_list" )
+    self._hit_list.set_headers_visible(False)
     self._hit_list.connect("select-cursor-row", self.on_select_from_list)
     self._hit_list.connect("button_press_event", self.on_list_mouse)
     self._liststore = gtk.ListStore(str, str)
