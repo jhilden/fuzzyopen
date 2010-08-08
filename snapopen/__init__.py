@@ -30,25 +30,29 @@ class FuzzySuggestion:
   def suggest( self, sub ):
     suggestion = []
     for f in self._fileset:
-      score = self._match_score( sub, f )
+      highlight, score = self._match_score( sub, f )
       if score >= len(sub):
-        suggestion.append(( f, score ))
-    suggestion = sorted(suggestion, key=lambda x: x[1], reverse=True)
-    return [ s[0] for s in suggestion ]
+        suggestion.append((highlight, f, score))
+    suggestion = sorted(suggestion, key=lambda x: x[2], reverse=True)
+    return [ (s[0], s[1]) for s in suggestion ]
 
   def _match_score( self, sub, str ):
     result = 0
     score = 0
+    highlight = ''
     for c in sub:
       while str != '' and str[0] != c:
         score = 0
+        highlight += str[0] 
         str = str[1:]
       if str == '':
-        return result
+        return (highlight, 0)
       score += 1
       result += score
       str = str[1:]
-    return result
+      highlight += "<b>" + c + "</b>"
+    highlight += str
+    return (highlight, result)
 
 # essential interface
 class SnapOpenPluginInstance:
@@ -111,9 +115,9 @@ class SnapOpenPluginInstance:
     self._hit_list = self._snapopen_glade.get_widget( "hit_list" )
     self._hit_list.connect("select-cursor-row", self.on_select_from_list)
     self._hit_list.connect("button_press_event", self.on_list_mouse)
-    self._liststore = gtk.ListStore(str)
+    self._liststore = gtk.ListStore(str, str)
     self._hit_list.set_model(self._liststore)
-    column = gtk.TreeViewColumn("File", gtk.CellRendererText(), text=0)
+    column = gtk.TreeViewColumn("File", gtk.CellRendererText(), markup=0)
     column.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
     self._hit_list.append_column(column)
     self._hit_list.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
@@ -140,8 +144,8 @@ class SnapOpenPluginInstance:
     suggestions = self._suggestion.suggest(pattern)
     self._liststore.clear()
     maxcount = 0
-    for file in suggestions:
-      self._liststore.append([file])
+    for highlight, file in suggestions:
+      self._liststore.append([highlight, file])
       if maxcount > max_result:
         break
       maxcount = maxcount + 1
@@ -181,7 +185,7 @@ class SnapOpenPluginInstance:
       self._snapopen_window.hide()
 
   def foreach(self, model, path, iter, selected):
-    selected.append(model.get_value(iter, 0))
+    selected.append(model.get_value(iter, 1))
 
   #open file in selection and hide window
   def open_selected_item( self, event ):
