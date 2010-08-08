@@ -19,6 +19,37 @@ ui_str="""<ui>
 </ui>
 """
 
+class FuzzySuggestion:
+  def __init__( self, filepath ):
+    self._fileset = []
+    for dirname, dirnames, filenames in os.walk( filepath ):
+      path = os.path.relpath( dirname, filepath )
+      for filename in filenames:
+        self._fileset.append( os.path.join( path, filename ) )
+
+  def suggest( self, sub ):
+    suggestion = []
+    for f in self._fileset:
+      score = self._match_score( sub, f )
+      if score >= len(sub):
+        suggestion.append(( f, score ))
+    suggestion = sorted(suggestion, key=lambda x: x[1], reverse=True)
+    return [ s[0] for s in suggestion ]
+
+  def _match_score( self, sub, str ):
+    result = 0
+    score = 0
+    for c in sub:
+      while str != '' and str[0] != c:
+        score = 0
+        str = str[1:]
+      if str == '':
+        return result
+      score += 1
+      result += score
+      str = str[1:]
+    return result
+
 # essential interface
 class SnapOpenPluginInstance:
 	def __init__( self, plugin, window ):
