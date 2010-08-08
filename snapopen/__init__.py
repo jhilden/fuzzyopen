@@ -109,17 +109,13 @@ class SnapOpenPluginInstance:
     self._glade_entry_name.connect("key-release-event", self.on_pattern_entry)
     #setup list field
     self._hit_list = self._snapopen_glade.get_widget( "hit_list" )
-    self._hit_list.set_headers_visible(False)
     self._hit_list.connect("select-cursor-row", self.on_select_from_list)
     self._hit_list.connect("button_press_event", self.on_list_mouse)
-    self._liststore = gtk.ListStore(str, str)
+    self._liststore = gtk.ListStore(str)
     self._hit_list.set_model(self._liststore)
-    column = gtk.TreeViewColumn("Name" , gtk.CellRendererText(), text=0)
+    column = gtk.TreeViewColumn("File", gtk.CellRendererText(), text=0)
     column.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-    column2 = gtk.TreeViewColumn("File", gtk.CellRendererText(), text=1)
-    column2.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
     self._hit_list.append_column(column)
-    self._hit_list.append_column(column2)
     self._hit_list.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
   #mouse event on list
@@ -145,8 +141,7 @@ class SnapOpenPluginInstance:
     self._liststore.clear()
     maxcount = 0
     for file in suggestions:
-      name = os.path.basename(file)
-      self._liststore.append([name, file])
+      self._liststore.append([file])
       if maxcount > max_result:
         break
       maxcount = maxcount + 1
@@ -175,7 +170,6 @@ class SnapOpenPluginInstance:
         self._snapopen_window.set_title(app_string + " (EDDT integration)")
       else:
         self._snapopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
-    print self._rootdir
     self._suggestion = FuzzySuggestion( self._rootdir[7:] )
     self._snapopen_window.show()
     self._glade_entry_name.select_region(0,-1)
@@ -187,7 +181,7 @@ class SnapOpenPluginInstance:
       self._snapopen_window.hide()
 
   def foreach(self, model, path, iter, selected):
-    selected.append(model.get_value(iter, 1))
+    selected.append(model.get_value(iter, 0))
 
   #open file in selection and hide window
   def open_selected_item( self, event ):
