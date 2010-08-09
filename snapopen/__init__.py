@@ -2,7 +2,7 @@ import gedit, gtk, gtk.glade
 import gconf
 import pygtk
 pygtk.require('2.0')
-import os, os.path, gobject
+import os, os.path, gobject, time
 from urllib import pathname2url
 
 max_result = 50
@@ -26,6 +26,7 @@ class FuzzySuggestion:
       path = os.path.relpath( dirname, filepath )
       for filename in filenames:
         self._fileset.append( os.path.join( path, filename ) )
+    self._fileset = sorted( self._fileset )
 
   def suggest( self, sub ):
     suggestion = []
@@ -115,11 +116,14 @@ class SnapOpenPluginInstance:
     self._hit_list = self._snapopen_glade.get_widget( "hit_list" )
     self._hit_list.connect("select-cursor-row", self.on_select_from_list)
     self._hit_list.connect("button_press_event", self.on_list_mouse)
-    self._liststore = gtk.ListStore(str, str)
+    self._liststore = gtk.ListStore(str, str, str)
     self._hit_list.set_model(self._liststore)
-    column = gtk.TreeViewColumn("File", gtk.CellRendererText(), markup=0)
-    column.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-    self._hit_list.append_column(column)
+    column0 = gtk.TreeViewColumn("Token", gtk.CellRendererText(), markup=0)
+    column0.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+    column1 = gtk.TreeViewColumn("File", gtk.CellRendererText(), markup=1)
+    column1.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+    self._hit_list.append_column(column0)
+    self._hit_list.append_column(column1)
     self._hit_list.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
   #mouse event on list
@@ -145,7 +149,15 @@ class SnapOpenPluginInstance:
     self._liststore.clear()
     maxcount = 0
     for highlight, file in suggestions:
-      self._liststore.append([highlight, file])
+      token = os.path.splitext(file)[-1]
+      if token != '':
+        token = token[1:]
+      else:
+        token = '.'
+      token = "<span variant='smallcaps' size='x-large' foreground='#FFFFFF' background='#929292'><b>" + token.capitalize() + '</b></span>'
+      modify = time.strftime('%b, %d, %Y', time.localtime(os.stat(self._rootdir[7:] + "/" + file).st_mtime))
+      highlight += "\nModified at: " + modify
+      self._liststore.append([token, highlight, file])
       if maxcount > max_result:
         break
       maxcount = maxcount + 1
@@ -174,6 +186,7 @@ class SnapOpenPluginInstance:
         self._snapopen_window.set_title(app_string + " (EDDT integration)")
       else:
         self._snapopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
+    # Get rid of file://
     self._suggestion = FuzzySuggestion( self._rootdir[7:] )
     self._snapopen_window.show()
     self._glade_entry_name.select_region(0,-1)
@@ -185,7 +198,7 @@ class SnapOpenPluginInstance:
       self._snapopen_window.hide()
 
   def foreach(self, model, path, iter, selected):
-    selected.append(model.get_value(iter, 1))
+    selected.append(model.get_value(iter, 2))
 
   #open file in selection and hide window
   def open_selected_item( self, event ):
