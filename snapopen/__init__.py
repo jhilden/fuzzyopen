@@ -20,12 +20,17 @@ ui_str="""<ui>
 """
 
 class FuzzySuggestion:
-  def __init__( self, filepath ):
+  def __init__( self, filepath, hidden=True ):
     self._fileset = []
     for dirname, dirnames, filenames in os.walk( filepath ):
+      if hidden:
+        for d in dirnames:
+          if d[0] == '.':
+            dirnames.remove(d)
       path = os.path.relpath( dirname, filepath )
       for filename in filenames:
-        self._fileset.append( os.path.join( path, filename ) )
+        if not hidden or filename[0] != '.':
+          self._fileset.append( os.path.join( path, filename ) )
     self._fileset = sorted( self._fileset )
 
   def suggest( self, sub ):
