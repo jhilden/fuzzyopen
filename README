@@ -1,32 +1,41 @@
-Gedit Snap Open Plugin
-Copyright (C) 2006-2010 Mads Buus Jensen <online@buus.net>
+Fuzzy Open (Gedit Plugin)
+Andrew Liu <andrewliu33 (at) gmail com>
+Mads Buus Jensen <online@buus.net> (SnapOpen)
 
-see CHANGELOG for details
+Github location: http://github.com/eggegg/fuzzyopen
 
-This plugin makes it much more convenient to open related source files.
-Inspired by TextMate for Mac, this plugin will use regular expressions
-to quickly search through files as you type. 
-Press CTRL+ALT+o (letter o) to open dialog (On MAC, the shortcut is alt-cmd-o)
+This plugin is base on SnapOpen plugin.
+(http://github.com/MadsBuus/gedit-snapopen-plugin)
+It use a totally different algorithm to find and rank the search result.
 
-Filebrowser integration: if the 'file browser' integration is enabled
-Snap Open will use the filebrowsers 'root' dir as top level dir when searching
-for files to open. if filebrowser is NOT used,  The files suggested are those 
-in or below the directory from where gedit was started. 
+USAGE:
 
-You can enter text or use arrow keys to select the file, 
-and then hit enter to open that file.
-If the file is already open, Gedit will switch to the proper tab.
-Escape will close the dialog.
-This plugin uses 'find' and 'grep' tools. You can modify the actual
-search command by editing snapopen.py and look for the line starting with 
-	cmd = "find ...
+Shortcut: Ctrl + Alt + O
 
-Known issues:
-* Stalls if there are many files matched.
-* Harmless broken pipe outputs with too many hits.
-* 'find' command on every keystroke (not time-limited)
-* Hard max-depth and 10 directories in 'find' command
+When you type the query in the new query window, the box under the query line
+will simultaneously update the search result.  The search space start from the
+root of the file show in the file browser plugin.
 
-For more information, visit my blog: http://www.upperbound.net/
-Or the project page: http://github.com/MadsBuus/gedit-snapopen-plugin
+The search result contains the files which matches the query along with some
+metadata, including the extension name, the time of modification displayed in
+relative form, and the git diff status if a folder .git is detected under the
+root of the file browser.
+
+SEARCH ALGORITHM:
+
+The algorithm is intended to solve the problem that sometimes there are many
+files having the same name (ie. index.erb), so search with path is a solution
+to the problem.  However, I'm too lazy to enter the whole path name.  So this
+is how the fuzzy search algorithm comes out.
+
+ - there is point for each single match
+ - the points increase for continue match, 1 point at first, 2 points at second,
+   3 points at third, ... and so on
+
+Eventually, the algorithm will match something like this:
+amus         =>   app/models/user.rb
+a/v/tclub    =>   app/view/theme/plain/club.erb
+
+If you have any suggestion about the algorithm, please contact me and help me
+improve it.
 

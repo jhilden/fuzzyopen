@@ -6,13 +6,13 @@ import os, os.path, gobject, datetime
 from urllib import pathname2url
 
 max_result = 50
-app_string = "Snap open"
+app_string = "Fuzzy open"
 
 ui_str="""<ui>
 <menubar name="MenuBar">
   <menu name="SearchMenu" action="Search">
     <placeholder name="SearchOps_7">
-      <menuitem name="SnapOpen" action="SnapOpenAction"/>
+      <menuitem name="FuzzyOpen" action="FuzzyOpenAction"/>
     </placeholder>
   </menu>
 </menubar>
@@ -68,7 +68,7 @@ class FuzzySuggestion:
     return (highlight, float(result) + pos)
 
 # essential interface
-class SnapOpenPluginInstance:
+class FuzzyOpenPluginInstance:
   def __init__( self, plugin, window ):
     self._window = window
     self._plugin = plugin
@@ -97,12 +97,12 @@ class SnapOpenPluginInstance:
   # MENU STUFF
   def _insert_menu( self ):
     manager = self._window.get_ui_manager()
-    self._action_group = gtk.ActionGroup( "SnapOpenPluginActions" )
-    snapopen_menu_action = gtk.Action( name="SnapOpenMenuAction", label="Snap", tooltip="Snap tools", stock_id=None )
-    self._action_group.add_action( snapopen_menu_action )
-    snapopen_action = gtk.Action( name="SnapOpenAction", label="Snap Open...\t", tooltip="Open file by autocomplete...", stock_id=gtk.STOCK_JUMP_TO )
-    snapopen_action.connect( "activate", lambda a: self.on_snapopen_action() )
-    self._action_group.add_action_with_accel( snapopen_action, "<Ctrl><Alt>o" )
+    self._action_group = gtk.ActionGroup( "FuzzyOpenPluginActions" )
+    fuzzyopen_menu_action = gtk.Action( name="FuzzyOpenMenuAction", label="Fuzzy", tooltip="Fuzzy tools", stock_id=None )
+    self._action_group.add_action( fuzzyopen_menu_action )
+    fuzzyopen_action = gtk.Action( name="FuzzyOpenAction", label="Fuzzy Open...\t", tooltip="Open file by autocomplete...", stock_id=gtk.STOCK_JUMP_TO )
+    fuzzyopen_action.connect( "activate", lambda a: self.on_fuzzyopen_action() )
+    self._action_group.add_action_with_accel( fuzzyopen_action, "<Ctrl><Alt>o" )
     manager.insert_action_group( self._action_group, 0 )
     self._ui_id = manager.new_merge_id()
     manager.add_ui_from_string( ui_str )
@@ -116,19 +116,19 @@ class SnapOpenPluginInstance:
 
   # UI DIALOGUES
   def _init_glade( self ):
-    self._snapopen_glade = gtk.glade.XML( os.path.dirname( __file__ ) + "/snapopen.glade" )
+    self._fuzzyopen_glade = gtk.glade.XML( os.path.dirname( __file__ ) + "/fuzzyopen.glade" )
     #setup window
-    self._snapopen_window = self._snapopen_glade.get_widget( "SnapOpenWindow" )
-    self._snapopen_window.connect("key-release-event", self.on_window_key)
-    self._snapopen_window.set_transient_for(self._window)
+    self._fuzzyopen_window = self._fuzzyopen_glade.get_widget( "FuzzyOpenWindow" )
+    self._fuzzyopen_window.connect("key-release-event", self.on_window_key)
+    self._fuzzyopen_window.set_transient_for(self._window)
     #setup buttons
-    self._snapopen_glade.get_widget( "ok_button" ).connect( "clicked", self.open_selected_item )
-    self._snapopen_glade.get_widget( "cancel_button" ).connect( "clicked", lambda a: self._snapopen_window.hide())
+    self._fuzzyopen_glade.get_widget( "ok_button" ).connect( "clicked", self.open_selected_item )
+    self._fuzzyopen_glade.get_widget( "cancel_button" ).connect( "clicked", lambda a: self._fuzzyopen_window.hide())
     #setup entry field
-    self._glade_entry_name = self._snapopen_glade.get_widget( "entry_name" )
+    self._glade_entry_name = self._fuzzyopen_glade.get_widget( "entry_name" )
     self._glade_entry_name.connect("key-release-event", self.on_pattern_entry)
     #setup list field
-    self._hit_list = self._snapopen_glade.get_widget( "hit_list" )
+    self._hit_list = self._fuzzyopen_glade.get_widget( "hit_list" )
     self._hit_list.connect("select-cursor-row", self.on_select_from_list)
     self._hit_list.connect("button_press_event", self.on_list_mouse)
     self._liststore = gtk.ListStore(str, str, str)
@@ -152,7 +152,7 @@ class SnapOpenPluginInstance:
 
   #keyboard event on entry field
   def on_pattern_entry( self, widget, event ):
-    oldtitle = self._snapopen_window.get_title().replace(" * too many hits", "")
+    oldtitle = self._fuzzyopen_window.get_title().replace(" * too many hits", "")
     if event.keyval == gtk.keysyms.Return:
       self.open_selected_item( event )
       return
@@ -178,7 +178,7 @@ class SnapOpenPluginInstance:
       maxcount = maxcount + 1
     if maxcount > max_result:
       oldtitle = oldtitle + " * too many hits"
-    self._snapopen_window.set_title(oldtitle)
+    self._fuzzyopen_window.set_title(oldtitle)
 
     selected = []
     self._hit_list.get_selection().selected_foreach(self.foreach, selected)
@@ -190,7 +190,7 @@ class SnapOpenPluginInstance:
 
   # from http://odondo.wordpress.com/2007/07/05/python-relative-datetime-formatting/
   def get_relative_time( self, date, now = None ):
-    if not now:	
+    if not now:
       now = datetime.datetime.now()
     date = datetime.datetime.fromtimestamp(date)
     diff = date.date() - now.date()
@@ -227,31 +227,31 @@ class SnapOpenPluginInstance:
       return ""
 
   #on menuitem activation (incl. shortcut)
-  def on_snapopen_action( self ):
+  def on_fuzzyopen_action( self ):
     fbroot = self.get_filebrowser_root()
     if fbroot != "" and fbroot is not None:
       self._rootdir = fbroot
-      self._snapopen_window.set_title(app_string + " (File Browser root)")
+      self._fuzzyopen_window.set_title(app_string + " (File Browser root)")
     else:
       eddtroot = self.get_eddt_root()
       if eddtroot != "" and eddtroot is not None:
         self._rootdir = eddtroot
-        self._snapopen_window.set_title(app_string + " (EDDT integration)")
+        self._fuzzyopen_window.set_title(app_string + " (EDDT integration)")
       else:
-        self._snapopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
+        self._fuzzyopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
     # Get rid of file://
     self._suggestion = FuzzySuggestion( self._rootdir[7:] )
     if os.path.exists( os.path.join( self._rootdir[7:], ".git" ) ):
       self._git = True
       self.get_git_diff()
-    self._snapopen_window.show()
+    self._fuzzyopen_window.show()
     self._glade_entry_name.select_region(0,-1)
     self._glade_entry_name.grab_focus()
 
   #on any keyboard event in main window
   def on_window_key( self, widget, event ):
     if event.keyval == gtk.keysyms.Escape:
-      self._snapopen_window.hide()
+      self._fuzzyopen_window.hide()
 
   def foreach(self, model, path, iter, selected):
     selected.append(model.get_value(iter, 2))
@@ -262,7 +262,7 @@ class SnapOpenPluginInstance:
     self._hit_list.get_selection().selected_foreach(self.foreach, selected)
     for selected_file in  selected:
       self._open_file ( selected_file )
-    self._snapopen_window.hide()
+    self._fuzzyopen_window.hide()
 
   #gedit < 2.16 version (get_tab_from_uri)
   def old_get_tab_from_uri(self, window, uri):
@@ -314,8 +314,8 @@ class SnapOpenPluginInstance:
       return val.get_string()
 
 # STANDARD PLUMMING
-class SnapOpenPlugin( gedit.Plugin ):
-  DATA_TAG = "SnapOpenPluginInstance"
+class FuzzyOpenPlugin( gedit.Plugin ):
+  DATA_TAG = "FuzzyOpenPluginInstance"
 
   def __init__( self ):
     gedit.Plugin.__init__( self )
@@ -327,7 +327,7 @@ class SnapOpenPlugin( gedit.Plugin ):
     window.set_data( self.DATA_TAG, instance )
 
   def activate( self, window ):
-    self._set_instance( window, SnapOpenPluginInstance( self, window ) )
+    self._set_instance( window, FuzzyOpenPluginInstance( self, window ) )
 
   def deactivate( self, window ):
     self._get_instance( window ).deactivate()
