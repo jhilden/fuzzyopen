@@ -24,7 +24,7 @@ class FuzzySuggestion:
     self._fileset = []
     for dirname, dirnames, filenames in os.walk( filepath ):
       if hidden:
-        for d in dirnames:
+        for d in dirnames[:]:
           if d[0] == '.':
             dirnames.remove(d)
       path = os.path.relpath( dirname, filepath )
@@ -173,6 +173,12 @@ class SnapOpenPluginInstance:
       token = "<span variant='smallcaps' size='x-large' foreground='#FFFFFF' background='#929292'><b>" + token.upper() + '</b></span>'
       modify = time.strftime('%b, %d, %Y', time.localtime(os.stat(fileroot + "/" + file).st_mtime))
       highlight += "\nMODIFY " + modify
+      if self._git:
+        try:
+          index = self._git_files.index(file)
+          highlight += self.get_git_string(index)
+        except ValueError:
+          pass
       self._liststore.append([token, highlight, file])
       if maxcount > max_result:
         break
@@ -190,14 +196,15 @@ class SnapOpenPluginInstance:
         self._hit_list.get_selection().select_iter(iter)
 
   def get_git_diff( self ):
-    self._git_with_diff = os.popen("cd " + self._rootdir[7:] + "; git diff --numstat ").readlines().split('\t')
-    self._git_files = [ s[0] for s in self._git_with_diff ]
+    self._git_with_diff = os.popen("cd " + self._rootdir[7:] + "; git diff --numstat ").readlines()
+    self._git_with_diff = [ s.strip().split('\t') for s in self._git_with_diff ]
+    self._git_files = [ s[2] for s in self._git_with_diff ]
     
-  def get_get_string( self, line_id):
+  def get_git_string( self, line_id ):
     add = int(self._git_with_diff[line_id][0])
     delete = int(self._git_with_diff[line_id][1])
     if add != 0 or delete != 0:
-      return "  GIT <span foreground='green'>" + ('+' * add) + "</span><span foreground='red'>" + ('-' * delete) + "</span>"
+      return "  GIT <tt><span foreground='green'>" + ('+' * add) + "</span><span foreground='red'>" + ('-' * delete) + "</span></tt>"
     else:
       return ""
 
@@ -216,9 +223,11 @@ class SnapOpenPluginInstance:
         self._snapopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
     # Get rid of file://
     self._suggestion = FuzzySuggestion( self._rootdir[7:] )
-    if os.path_exists( os.path.join( self.__rootdir[7:], ".git" ) ):
+    if os.path.exists( os.path.join( self._rootdir[7:], ".git" ) ):
       self._git = True
       self.get_git_diff()
+    print self._git
+    print self._git_files
     self._snapopen_window.show()
     self._glade_entry_name.select_region(0,-1)
     self._glade_entry_name.grab_focus()
