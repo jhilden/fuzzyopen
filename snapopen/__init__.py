@@ -69,6 +69,9 @@ class SnapOpenPluginInstance:
     self._rootdir = "file://" + os.getcwd()
     self._show_hidden = False # TODO: not used
     self._suggestion = None
+    self._git = False
+    self._git_with_diff = None
+    self._git_files = None
     self._liststore = None
     self._last_pattern = ""
     self._init_glade()
@@ -178,6 +181,18 @@ class SnapOpenPluginInstance:
       if iter != None:
         self._hit_list.get_selection().select_iter(iter)
 
+  def get_git_diff( self ):
+    self._git_with_diff = os.popen("cd " + self._rootdir[7:] + "; git diff --numstat ").readlines().split('\t')
+    self._git_files = [ s[0] for s in self._git_with_diff ]
+    
+  def get_get_string( self, line_id):
+    add = int(self._git_with_diff[line_id][0])
+    delete = int(self._git_with_diff[line_id][1])
+    if add != 0 or delete != 0:
+      return "  GIT <span foreground='green'>" + ('+' * add) + "</span><span foreground='red'>" + ('-' * delete) + "</span>"
+    else:
+      return ""
+
   #on menuitem activation (incl. shortcut)
   def on_snapopen_action( self ):
     fbroot = self.get_filebrowser_root()
@@ -193,6 +208,9 @@ class SnapOpenPluginInstance:
         self._snapopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
     # Get rid of file://
     self._suggestion = FuzzySuggestion( self._rootdir[7:] )
+    if os.path_exists( os.path.join( self.__rootdir[7:], ".git" ) ):
+      self._git = True
+      self.get_git_diff()
     self._snapopen_window.show()
     self._glade_entry_name.select_region(0,-1)
     self._glade_entry_name.grab_focus()
