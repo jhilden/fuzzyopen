@@ -162,9 +162,10 @@ class SnapOpenPluginInstance:
         token = token[1:]
       else:
         token = '.'
-      token = "<span variant='smallcaps' size='x-large' foreground='#FFFFFF' background='#929292'><b>" + token.capitalize() + '</b></span>'
-      modify = time.strftime('%b, %d, %Y', time.localtime(os.stat(self._rootdir[7:] + "/" + file).st_mtime))
-      highlight += "\nModified at: " + modify
+      fileroot = self._rootdir[7:]
+      token = "<span variant='smallcaps' size='x-large' foreground='#FFFFFF' background='#929292'><b>" + token.upper() + '</b></span>'
+      modify = time.strftime('%b, %d, %Y', time.localtime(os.stat(fileroot + "/" + file).st_mtime))
+      highlight += "\nMODIFY " + modify
       self._liststore.append([token, highlight, file])
       if maxcount > max_result:
         break
