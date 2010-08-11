@@ -40,20 +40,27 @@ class FuzzySuggestion:
   def _match_score( self, sub, str ):
     result = 0
     score = 0
+    pos = 0
+    original_length = len(str)
     highlight = ''
     for c in sub:
       while str != '' and str[0] != c:
         score = 0
-        highlight += str[0] 
+        highlight += str[0]
         str = str[1:]
       if str == '':
         return (highlight, 0)
       score += 1
       result += score
+      pos += len(str)
       str = str[1:]
       highlight += "<b>" + c + "</b>"
     highlight += str
-    return (highlight, result)
+    if len(sub) != 0 and original_length > 1:
+      pos = float(pos-1) / ((float(original_length)-1.0) * float(len(sub)))
+    else:
+      pos = 0.0
+    return (highlight, float(result) + pos)
 
 # essential interface
 class SnapOpenPluginInstance:
