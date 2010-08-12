@@ -10,8 +10,8 @@ app_string = "Fuzzy open"
 
 ui_str="""<ui>
 <menubar name="MenuBar">
-  <menu name="SearchMenu" action="Search">
-    <placeholder name="SearchOps_7">
+  <menu name="FileMenu" action="File">
+    <placeholder name="FileOps_2">
       <menuitem name="FuzzyOpen" action="FuzzyOpenAction"/>
     </placeholder>
   </menu>
@@ -74,7 +74,7 @@ class FuzzyOpenPluginInstance:
     self._plugin = plugin
     self._encoding = gedit.encoding_get_current()
     self._rootdir = "file://" + os.getcwd()
-    self._show_hidden = False # TODO: not used
+    self._show_hidden = False
     self._suggestion = None
     self._git = False
     self._git_with_diff = None
