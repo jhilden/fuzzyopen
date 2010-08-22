@@ -7,6 +7,7 @@ from urllib import pathname2url
 
 max_result = 50
 app_string = "Fuzzy open"
+excluded_file_types = ["jpg", "jpeg", "gif", "png", "tif", "psd", "pyc"]
 
 ui_str="""<ui>
 <menubar name="MenuBar">
@@ -29,8 +30,9 @@ class FuzzySuggestion:
             dirnames.remove(d)
       path = os.path.relpath( dirname, filepath )
       for filename in filenames:
-        if not hidden or filename[0] != '.':
-          self._fileset.append( os.path.join( path, filename ) )
+        if (not hidden or filename[0] != '.'):
+          if os.path.splitext( filename )[-1][1:] not in excluded_file_types:
+            self._fileset.append( os.path.join( path, filename ) )
     self._fileset = sorted( self._fileset )
 
   def suggest( self, sub ):
