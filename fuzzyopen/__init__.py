@@ -20,6 +20,9 @@ ui_str="""<ui>
 </ui>
 """
 
+def debug(str):
+    print "[DEBUG]: " + str
+
 class FuzzySuggestion:
   def __init__( self, filepath, hidden=True ):
     self._fileset = []
@@ -34,6 +37,7 @@ class FuzzySuggestion:
           if os.path.splitext( filename )[-1][1:] not in excluded_file_types:
             self._fileset.append( os.path.join( path, filename ) )
     self._fileset = sorted( self._fileset )
+    debug("Loaded files count = %d" % len(self._fileset))
 
   def suggest( self, sub ):
     suggestion = []
@@ -42,6 +46,7 @@ class FuzzySuggestion:
       if score >= len(sub):
         suggestion.append((highlight, f, score))
     suggestion = sorted(suggestion, key=lambda x: x[2], reverse=True)
+    debug("Suggestion count = %d" % len(suggestion))
     return [ (s[0], s[1]) for s in suggestion ]
 
   def _match_score( self, sub, str ):
@@ -242,10 +247,12 @@ class FuzzyOpenPluginInstance:
       else:
         self._fuzzyopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
     # Get rid of file://
+    debug("Rootdir = " + self._rootdir)
     self._suggestion = FuzzySuggestion( self._rootdir[7:] )
     if os.path.exists( os.path.join( self._rootdir[7:], ".git" ) ):
       self._git = True
       self.get_git_diff()
+    debug("Use Git = " + str(self._git))
     self._fuzzyopen_window.show()
     self._glade_entry_name.select_region(0,-1)
     self._glade_entry_name.grab_focus()
