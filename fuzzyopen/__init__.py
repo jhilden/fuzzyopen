@@ -3,7 +3,7 @@ import gconf
 import pygtk
 pygtk.require('2.0')
 import os, os.path, gobject, datetime
-from urllib import pathname2url
+from urllib import pathname2url, url2pathname
 
 max_result = 50
 app_string = "Fuzzy open"
@@ -80,7 +80,8 @@ class FuzzyOpenPluginInstance:
     self._window = window
     self._plugin = plugin
     self._encoding = gedit.encoding_get_current()
-    self._rootdir = "file://" + os.getcwd()
+    self._rootpath = os.getcwd()
+    self._rootdir = "file://" + self._rootpath
     self._show_hidden = False
     self._suggestion = None
     self._git = False
@@ -171,7 +172,7 @@ class FuzzyOpenPluginInstance:
     self._liststore.clear()
     maxcount = 0
     for highlight, file in suggestions:
-      fileroot = self._rootdir[7:]
+      fileroot = self._rootpath
       highlight += "\nMODIFY " + self.get_relative_time(os.stat(fileroot + "/" + file).st_mtime)
       if self._git:
         try:
@@ -221,7 +222,7 @@ class FuzzyOpenPluginInstance:
     return "<span variant='smallcaps' size='x-large' foreground='#FFFFFF' background='#929292'><b>" + token.upper() + '</b></span>'
 
   def get_git_diff( self ):
-    self._git_with_diff = os.popen("cd " + self._rootdir[7:] + "; git diff --numstat ").readlines()
+    self._git_with_diff = os.popen("cd " + self._rootpath + "; git diff --numstat ").readlines()
     self._git_with_diff = [ s.strip().split('\t') for s in self._git_with_diff ]
     self._git_files = [ s[2] for s in self._git_with_diff ]
 
@@ -248,8 +249,10 @@ class FuzzyOpenPluginInstance:
         self._fuzzyopen_window.set_title(app_string + " (Working dir): " + self._rootdir)
     # Get rid of file://
     debug("Rootdir = " + self._rootdir)
-    self._suggestion = FuzzySuggestion( self._rootdir[7:] )
-    if os.path.exists( os.path.join( self._rootdir[7:], ".git" ) ):
+    self._rootpath = url2pathname(self._rootdir)[7:]
+    debug("Rootpath = "+ self._rootpath)
+    self._suggestion = FuzzySuggestion( self._rootpath )
+    if os.path.exists( os.path.join( self._rootpath, ".git" ) ):
       self._git = True
       self.get_git_diff()
     debug("Use Git = " + str(self._git))
