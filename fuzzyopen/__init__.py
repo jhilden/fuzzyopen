@@ -120,7 +120,6 @@ class FuzzyOpenPluginInstance:
     manager = self._window.get_ui_manager()
     manager.remove_ui( self._ui_id )
     manager.remove_action_group( self._action_group )
-    manager.ensure_update()
 
   # UI DIALOGUES
   def _init_glade( self ):
