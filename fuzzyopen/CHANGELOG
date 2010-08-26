@@ -6,6 +6,11 @@ Changelog
 
 Fuzzy Open
 
+Version 1.1.0
+* Ignore files that cannot be opend by gedit (jpg, gif, png, tif, psd, pyc)
+* Fix the bug for non-Latin directory
+* Change the menu entry to File
+
 Version 1.0.0
 * Forked from SnapOpen, use a different algorithm to do the search.
 * Added metadata for search display:

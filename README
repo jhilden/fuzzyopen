@@ -7,6 +7,13 @@ Github location: http://github.com/eggegg/fuzzyopen
 This plugin is base on SnapOpen plugin.
 (http://github.com/MadsBuus/gedit-snapopen-plugin)
 It use a totally different algorithm to find and rank the search result.
+It depends on File Browser Plugin to get the root of searching.
+
+FEATURES:
+
+ - Enable partial matching search, search with path
+ - Metedatas showed when searching: modified time, git status, file extention
+ - Ignore the hidden files and the file cannot be opened by gedit
 
 USAGE:
 
