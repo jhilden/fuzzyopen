@@ -21,7 +21,8 @@ ui_str="""<ui>
 """
 
 def debug(str):
-    print "[DEBUG]: " + str
+    # print "[DEBUG]: " + str
+    pass
 
 class FuzzySuggestion:
   def __init__( self, filepath, hidden=True ):
