@@ -287,10 +287,8 @@ class FuzzyOpenPluginInstance:
   #opens (or switches to) the given file
   def _open_file( self, filename ):
     uri = self._rootdir + "/" + pathname2url(filename)
-    tab = self._window.get_tab_from_uri(uri)
-    if tab == None:
-      tab = self._window.create_tab_from_uri( uri, self._encoding, 0, False, False )
-    self._window.set_active_tab( tab )
+
+    gedit.commands.load_uri(self._window, uri, self._encoding)
 
 # EDDT integration
   def get_eddt_root(self):
