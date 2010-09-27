@@ -74,6 +74,7 @@ class FuzzyOpenPluginInstance:
     #setup window
     self._fuzzyopen_window = self._fuzzyopen_glade.get_widget( "FuzzyOpenWindow" )
     self._fuzzyopen_window.connect("key-release-event", self.on_window_key)
+    self._fuzzyopen_window.connect("delete_event", self._fuzzyopen_window.hide_on_delete)
     self._fuzzyopen_window.set_transient_for(self._window)
     #setup buttons
     self._fuzzyopen_glade.get_widget( "ok_button" ).connect( "clicked", self.open_selected_item )
