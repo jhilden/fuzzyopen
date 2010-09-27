@@ -7,7 +7,6 @@ from urllib import pathname2url, url2pathname
 from suggestion import FuzzySuggestion
 from util import debug
 
-max_result = 50
 app_string = "Fuzzy open"
 
 ui_str="""<ui>
@@ -32,8 +31,6 @@ class FuzzyOpenPluginInstance:
     self._show_hidden = False
     self._suggestion = None
     self._git = False
-    self._git_with_diff = None
-    self._git_files = None
     self._liststore = None
     self._last_pattern = ""
     self._init_glade()
@@ -117,24 +114,9 @@ class FuzzyOpenPluginInstance:
     self._last_pattern = pattern
     suggestions = self._suggestion.suggest(pattern)
     self._liststore.clear()
-    maxcount = 0
-    for highlight, file in suggestions:
-      fileroot = self._rootpath
-      highlight += "\nMODIFY " + util.relative_time(os.stat(fileroot + "/" + file).st_mtime)
-      if self._git:
-        try:
-          index = self._git_files.index(file)
-          highlight += self.get_git_string(index)
-        except ValueError:
-          pass
-      self._liststore.append([self.get_token_string( file ), highlight, file])
-      if maxcount > max_result:
-        break
-      maxcount = maxcount + 1
-    if maxcount > max_result:
-      oldtitle = oldtitle + " * too many hits"
+    for suggestion in suggestions:
+      self._liststore.append(suggestion)
     self._fuzzyopen_window.set_title(oldtitle)
-
     selected = []
     self._hit_list.get_selection().selected_foreach(self.foreach, selected)
 
@@ -142,27 +124,6 @@ class FuzzyOpenPluginInstance:
       iter = self._liststore.get_iter_first()
       if iter != None:
         self._hit_list.get_selection().select_iter(iter)
-
-  def get_token_string( self, file ):
-    token = os.path.splitext(file)[-1]
-    if token != '':
-      token = token[1:]
-    else:
-      token = '.'
-    return "<span variant='smallcaps' size='x-large' foreground='#FFFFFF' background='#929292'><b>" + token.upper() + '</b></span>'
-
-  def get_git_diff( self ):
-    self._git_with_diff = os.popen("cd " + self._rootpath + "; git diff --numstat ").readlines()
-    self._git_with_diff = [ s.strip().split('\t') for s in self._git_with_diff ]
-    self._git_files = [ s[2] for s in self._git_with_diff ]
-
-  def get_git_string( self, line_id ):
-    add = int(self._git_with_diff[line_id][0])
-    delete = int(self._git_with_diff[line_id][1])
-    if add != 0 or delete != 0:
-      return "  GIT <tt><span foreground='green'>" + ('+' * add) + "</span><span foreground='red'>" + ('-' * delete) + "</span></tt>"
-    else:
-      return ""
 
   #on menuitem activation (incl. shortcut)
   def on_fuzzyopen_action( self ):
@@ -182,11 +143,10 @@ class FuzzyOpenPluginInstance:
     debug("Rootdir = " + self._rootdir)
     self._rootpath = url2pathname(self._rootdir)[7:]
     debug("Rootpath = "+ self._rootpath)
-    self._suggestion = FuzzySuggestion( self._rootpath )
     if os.path.exists( os.path.join( self._rootpath, ".git" ) ):
       self._git = True
-      self.get_git_diff()
     debug("Use Git = " + str(self._git))
+    self._suggestion = FuzzySuggestion( self._rootpath, self._show_hidden, self._git )
     self._fuzzyopen_window.show()
     self._glade_entry_name.select_region(0,-1)
     self._glade_entry_name.grab_focus()
