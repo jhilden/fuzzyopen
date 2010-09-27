@@ -1,4 +1,4 @@
-import gedit, gtk, gtk.glade
+import gedit, gtk
 import gconf
 import pygtk
 pygtk.require('2.0')
@@ -68,20 +68,21 @@ class FuzzyOpenPluginInstance:
 
   # UI DIALOGUES
   def _init_glade( self ):
-    self._fuzzyopen_glade = gtk.glade.XML( os.path.dirname( __file__ ) + "/fuzzyopen.glade" )
+    self._fuzzyopen_glade = gtk.Builder()
+    self._fuzzyopen_glade.add_from_file(os.path.join(os.path.dirname( __file__ ), "window.glade"))
     #setup window
-    self._fuzzyopen_window = self._fuzzyopen_glade.get_widget( "FuzzyOpenWindow" )
+    self._fuzzyopen_window = self._fuzzyopen_glade.get_object( "FuzzyOpenWindow" )
     self._fuzzyopen_window.connect("key-release-event", self.on_window_key)
     self._fuzzyopen_window.connect("delete_event", self._fuzzyopen_window.hide_on_delete)
     self._fuzzyopen_window.set_transient_for(self._window)
     #setup buttons
-    self._fuzzyopen_glade.get_widget( "ok_button" ).connect( "clicked", self.open_selected_item )
-    self._fuzzyopen_glade.get_widget( "cancel_button" ).connect( "clicked", lambda a: self._fuzzyopen_window.hide())
+    self._fuzzyopen_glade.get_object( "ok_button" ).connect( "clicked", self.open_selected_item )
+    self._fuzzyopen_glade.get_object( "cancel_button" ).connect( "clicked", lambda a: self._fuzzyopen_window.hide())
     #setup entry field
-    self._glade_entry_name = self._fuzzyopen_glade.get_widget( "entry_name" )
+    self._glade_entry_name = self._fuzzyopen_glade.get_object( "entry_name" )
     self._glade_entry_name.connect("key-release-event", self.on_pattern_entry)
     #setup list field
-    self._hit_list = self._fuzzyopen_glade.get_widget( "hit_list" )
+    self._hit_list = self._fuzzyopen_glade.get_object( "hit_list" )
     self._hit_list.connect("select-cursor-row", self.on_select_from_list)
     self._hit_list.connect("button_press_event", self.on_list_mouse)
     self._liststore = gtk.ListStore(str, str, str)
