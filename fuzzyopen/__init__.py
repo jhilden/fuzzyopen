@@ -2,7 +2,7 @@ import gedit, gtk, gtk.glade
 import gconf
 import pygtk
 pygtk.require('2.0')
-import os, os.path, gobject, datetime
+import os, os.path, gobject
 from urllib import pathname2url, url2pathname
 from suggestion import FuzzySuggestion
 from util import debug
@@ -120,7 +120,7 @@ class FuzzyOpenPluginInstance:
     maxcount = 0
     for highlight, file in suggestions:
       fileroot = self._rootpath
-      highlight += "\nMODIFY " + self.get_relative_time(os.stat(fileroot + "/" + file).st_mtime)
+      highlight += "\nMODIFY " + util.relative_time(os.stat(fileroot + "/" + file).st_mtime)
       if self._git:
         try:
           index = self._git_files.index(file)
@@ -142,23 +142,6 @@ class FuzzyOpenPluginInstance:
       iter = self._liststore.get_iter_first()
       if iter != None:
         self._hit_list.get_selection().select_iter(iter)
-
-  # from http://odondo.wordpress.com/2007/07/05/python-relative-datetime-formatting/
-  def get_relative_time( self, date, now = None ):
-    if not now:
-      now = datetime.datetime.now()
-    date = datetime.datetime.fromtimestamp(date)
-    diff = date.date() - now.date()
-    if diff.days == 0:                                        # Today
-      return 'at ' + date.strftime("%I:%M %p")                ## at 05:45 PM
-    elif diff.days == 1:                                      # Yesterday
-      return 'at ' + date.strftime("%I:%M %p") + ' Yesterday' ## at 05:45 PM Yesterday
-    elif diff.days == 1:                                      # Tomorrow
-      return 'at ' + date.strftime("%I:%M %p") + ' Tomorrow'  ## at 05:45 PM Tomorrow
-    elif diff.days < 7:                                       # Within one week back
-      return 'at ' + date.strftime("%I:%M %p %A")             ## at 05:45 PM Tuesday
-    else:
-      return 'on ' + date.strftime("%b, %d, %Y")              ## on Jan, 3, 2010
 
   def get_token_string( self, file ):
     token = os.path.splitext(file)[-1]
@@ -183,12 +166,13 @@ class FuzzyOpenPluginInstance:
 
   #on menuitem activation (incl. shortcut)
   def on_fuzzyopen_action( self ):
-    fbroot = self.get_filebrowser_root()
-    if fbroot != "" and fbroot is not None:
-      self._rootdir = fbroot
+    fbroot = util.filebrowser_root()
+    if fbroot[0] != "" and fbroot[0] is not None:
+      self._rootdir = fbroot[0]
+      self._show_hidden = fbroot[1]
       self._fuzzyopen_window.set_title(app_string + " (File Browser root)")
     else:
-      eddtroot = self.get_eddt_root()
+      eddtroot = util.eddt_root()
       if eddtroot != "" and eddtroot is not None:
         self._rootdir = eddtroot
         self._fuzzyopen_window.set_title(app_string + " (EDDT integration)")
@@ -223,52 +207,10 @@ class FuzzyOpenPluginInstance:
       self._open_file ( selected_file )
     self._fuzzyopen_window.hide()
 
-  #gedit < 2.16 version (get_tab_from_uri)
-  def old_get_tab_from_uri(self, window, uri):
-    docs = window.get_documents()
-    for doc in docs:
-      if doc.get_uri() == uri:
-        return gedit.tab_get_from_document(doc)
-    return None
-
   #opens (or switches to) the given file
   def _open_file( self, filename ):
     uri = self._rootdir + "/" + pathname2url(filename)
-
     gedit.commands.load_uri(self._window, uri, self._encoding)
-
-# EDDT integration
-  def get_eddt_root(self):
-    base = u'/apps/gedit-2/plugins/eddt'
-    client = gconf.client_get_default()
-    client.add_dir(base, gconf.CLIENT_PRELOAD_NONE)
-    path = os.path.join(base, u'repository')
-    val = client.get(path)
-    if val is not None:
-      return val.get_string()
-
-# FILEBROWSER integration
-  def get_filebrowser_root(self):
-    base = u'/apps/gedit-2/plugins/filebrowser/on_load'
-    client = gconf.client_get_default()
-    client.add_dir(base, gconf.CLIENT_PRELOAD_NONE)
-    path = os.path.join(base, u'virtual_root')
-    val = client.get(path)
-    if val is not None:
-      #also read hidden files setting
-      base = u'/apps/gedit-2/plugins/filebrowser'
-      client = gconf.client_get_default()
-      client.add_dir(base, gconf.CLIENT_PRELOAD_NONE)
-      path = os.path.join(base, u'filter_mode')
-      try:
-        fbfilter = client.get(path).get_string()
-      except AttributeError:
-        fbfilter = "hidden"
-      if fbfilter.find("hidden") == -1:
-        self._show_hidden = True
-      else:
-        self._show_hidden = False
-      return val.get_string()
 
 # STANDARD PLUMMING
 class FuzzyOpenPlugin( gedit.Plugin ):
