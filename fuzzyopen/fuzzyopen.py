@@ -145,13 +145,21 @@ class FuzzyOpenPluginInstance:
     debug("Rootdir = " + self._rootdir)
     self._rootpath = url2pathname(self._rootdir)[7:]
     debug("Rootpath = "+ self._rootpath)
-    if os.path.exists( os.path.join( self._rootpath, ".git" ) ):
-      self._git = True
+    self._git = self.check_git(self._rootpath)
     debug("Use Git = " + str(self._git))
     self._suggestion = FuzzySuggestion( self._rootpath, self._show_hidden, self._git )
     self._fuzzyopen_window.show()
     self._glade_entry_name.select_region(0,-1)
     self._glade_entry_name.grab_focus()
+
+  #check if it is a git repository
+  def check_git( self, path ):
+    block = os.path.join(path, '').split('/')
+    for i in range(0, len(block)):
+      current_path = '/'.join(block[:i])
+      if os.path.exists(os.path.join(current_path, '.git')):
+        return True
+    return False
 
   #on any keyboard event in main window
   def on_window_key( self, widget, event ):
