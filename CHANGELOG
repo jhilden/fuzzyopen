@@ -6,6 +6,11 @@ Changelog
 
 Fuzzy Open
 
+Version 1.2.0
+* Fix the bug of hanging when closing the window by clicking the x button
+* Now files with git modifacations will have better rank
+* Git subdirectory now works fine
+
 Version 1.1.0
 * Ignore files that cannot be opend by gedit (jpg, gif, png, tif, psd, pyc)
 * Fix the bug for non-Latin directory
