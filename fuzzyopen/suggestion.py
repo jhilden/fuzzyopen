@@ -30,12 +30,12 @@ class FuzzySuggestion:
       for filename in filenames:
         if (self._show_hidden or filename[0] != '.'):
           if os.path.splitext( filename )[-1][1:] not in excluded_file_types:
-            self._fileset.append( os.path.join( path, filename ) )
+            self._fileset.append( os.path.normpath(os.path.join( path, filename ) ) )
     self._fileset = sorted( self._fileset )
     debug("Loaded files count = %d" % len(self._fileset))
 
   def _load_git( self ):
-    self._git_with_diff = subprocess.Popen(["git", "diff", "--numstat"], cwd=self._filepath, stdout=subprocess.PIPE).communicate()[0].split('\n')[:-1]
+    self._git_with_diff = subprocess.Popen(["git", "diff", "--numstat", "--relative"], cwd=self._filepath, stdout=subprocess.PIPE).communicate()[0].split('\n')[:-1]
     debug("Git file path: %s" % self._filepath)
     self._git_with_diff = [ s.strip().split('\t') for s in self._git_with_diff ]
     #print self._git_with_diff
