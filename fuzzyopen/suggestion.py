@@ -14,10 +14,13 @@ class FuzzySuggestion:
   def __init__( self, filepath, show_hidden=False, git=False ):
     self._filepath = filepath
     self._show_hidden = show_hidden
-    self._git = git
-    if self._git:
-      self._load_git()
-    self._load_file()
+    def indexing():
+      self._git = git
+      if self._git:
+        self._load_git()
+      self._load_file()
+    self._thread = util.FuzzyDelay(indexing)
+    self._thread.start()
 
   def _load_file( self ):
     self._fileset = []
@@ -42,6 +45,9 @@ class FuzzySuggestion:
     self._git_files = [ s[2] for s in self._git_with_diff ]
 
   def suggest( self, sub ):
+    if self._thread:
+      self._thread.join()
+      self._thread = None
     suggestion = []
     for f in self._fileset:
       highlight, score = self._match_score( sub, f )

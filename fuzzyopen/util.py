@@ -5,6 +5,16 @@
 from datetime import datetime
 import gconf
 import os
+import threading
+
+class FuzzyDelay(threading.Thread):
+    """ Delay for making index """
+    def __init__(self, function):
+        threading.Thread.__init__(self)
+        self.function = function
+
+    def run(self):
+        self.function()
 
 # EDDT integration
 def eddt_root():
