@@ -36,6 +36,8 @@ class FuzzyOpenPluginInstance:
     self._last_pattern = ""
     self._init_glade()
     self._insert_menu()
+    self._thread = None
+    self._thread_id = 0
 
   def deactivate( self ):
     self._remove_menu()
@@ -106,7 +108,7 @@ class FuzzyOpenPluginInstance:
 
   #keyboard event on entry field
   def on_pattern_entry( self, widget, event ):
-    oldtitle = self._fuzzyopen_window.get_title().replace(" * too many hits", "")
+    self._suggestion._new_keyevent = True
     if event.keyval == gtk.keysyms.Return:
       self.open_selected_item( event )
       return
@@ -114,11 +116,21 @@ class FuzzyOpenPluginInstance:
     if pattern == self._last_pattern:
       return
     self._last_pattern = pattern
-    suggestions = self._suggestion.suggest(pattern)
+    if self._thread:
+        self._thread.join()
+    self._thread = util.FuzzyDelay( self.pattern_thread )
+    self._thread_id = self._thread_id + 1
+    self._thread.start()
+
+  def pattern_thread( self ):
+    this_id = self._thread_id
+    self._suggestion._thread_id = self._suggestion._thread_id + 1
+    suggestions = self._suggestion.suggest(self._last_pattern)
+    if suggestions == None or this_id < self._thread_id:
+      return
     self._liststore.clear()
     for suggestion in suggestions:
       self._liststore.append(suggestion)
-    self._fuzzyopen_window.set_title(oldtitle)
     selected = []
     self._hit_list.get_selection().selected_foreach(self.foreach, selected)
 
@@ -126,6 +138,9 @@ class FuzzyOpenPluginInstance:
       iter = self._liststore.get_iter_first()
       if iter != None:
         self._hit_list.get_selection().select_iter(iter)
+    #gtk.gdk.window_process_all_updates()
+    #self._window.queue_draw()
+    while gtk.events_pending(): gtk.main_iteration()
 
   #on menuitem activation (incl. shortcut)
   def on_fuzzyopen_action( self ):

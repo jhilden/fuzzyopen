@@ -14,6 +14,7 @@ class FuzzySuggestion:
   def __init__( self, filepath, show_hidden=False, git=False ):
     self._filepath = filepath
     self._show_hidden = show_hidden
+    self._thread_id = 0
     def indexing():
       self._git = git
       if self._git:
@@ -45,9 +46,14 @@ class FuzzySuggestion:
     self._git_files = [ s[2] for s in self._git_with_diff ]
 
   def suggest( self, sub ):
-    if self._thread:
-      self._thread.join()
-      self._thread = None
+    this_id = self._thread_id
+    while self._thread:
+      self._thread.join(0.01)
+      if not self._thread.is_alive():
+        self._thread = None
+        break
+      if this_id < self._thread_id:
+        return None
     suggestion = []
     for f in self._fileset:
       highlight, score = self._match_score( sub, f )
