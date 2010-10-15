@@ -14,6 +14,7 @@ FEATURES:
  - Enable partial matching search, search with path
  - Metedatas showed when searching: modified time, git status, file extention
  - Ignore the hidden files and the file cannot be opened by gedit
+ - Options for case ignored or space ignored search
 
 USAGE:
 
