@@ -6,6 +6,19 @@ from datetime import datetime
 import gconf
 import os
 
+def config(name):
+  base = lambda x: u'/apps/gedit-2/plugins/fuzzyopen/%s' % x
+  client = gconf.client_get_default()
+  get = client.get_string(base(name))
+  if not get:
+    if name == 'ignore_case':
+      pass
+    elif name == 'ignore_space':
+      pass
+    elif name == 'ignore_ext':
+      pass
+  return get
+
 # EDDT integration
 def eddt_root():
   base = u'/apps/gedit-2/plugins/eddt'
