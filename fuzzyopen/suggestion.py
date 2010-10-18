@@ -13,7 +13,7 @@ class FuzzySuggestion:
   def __init__( self, filepath, show_hidden=False, git=False ):
     self._filepath = filepath
     self._show_hidden = show_hidden
-    self._git = git
+    self._git = git and util.config('use_git')
     self._excluded = util.config('ignore_ext').split(',')
     self._ignore_case = util.config('ignore_case')
     self._ignore_space = util.config('ignore_space')
