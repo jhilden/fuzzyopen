@@ -18,7 +18,7 @@ FEATURES:
 
 USAGE:
 
-Shortcut: Ctrl + Alt + O
+Shortcut: Ctrl + Shift + O
 
 When you type the query in the new query window, the box under the query line
 will simultaneously update the search result.  The search space start from the
