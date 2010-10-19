@@ -20,7 +20,11 @@ class FuzzyOpenConfigWindow:
     self._use_git.connect('toggled', self.on_use_git)
     self._ignore_case.connect('toggled', self.on_ignore_case)
     self._ignore_space.connect('toggled', self.on_ignore_space)
+    self._builder.get_object('done').connect('clicked', self.on_click)
     self._window.show_all()
+
+  def on_click(self, widget):
+    self._window.emit('destroy')
 
   def on_ignore_ext(self, widget, event):
     util.config('ignore_ext', self._ignore_ext.get_text())
