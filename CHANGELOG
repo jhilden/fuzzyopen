@@ -6,6 +6,11 @@ Changelog
 
 Fuzzy Open
 
+Version 1.3.2
+* Add icon for search result
+* Move the extension name to metadata area
+* Fix the about dialog with correct combo key
+
 Version 1.3.1
 * Switching git metadata is available
 * Fix the OK button in configuration

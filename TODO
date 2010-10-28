@@ -4,7 +4,6 @@ Mads Buus Jensen <online@buus.net> (SnapOpen)
 
 Todos:
 
-* Improve ui
 * Fallback to current active tab path if File Browser plugin not activated
 * Fix the thread gtk refresh problem
 
