@@ -4,6 +4,7 @@
 
 import os
 import subprocess
+import gio, gtk
 from util import debug
 import util
 
@@ -61,7 +62,9 @@ class FuzzySuggestion:
     if self._git and (suggestion[1] in self._git_files):
       index = self._git_files.index(suggestion[1])
       highlight += self._git_string(index)
-    return (self._token_string( suggestion[1] ), highlight, suggestion[1])
+    file_icon = gio.File(suggestion[1]).query_info('standard::icon').get_icon()
+    icon = gtk.icon_theme_get_default().lookup_by_gicon(file_icon, 40, gtk.ICON_LOOKUP_USE_BUILTIN)
+    return (icon and icon.load_icon(), self._token_string( suggestion[1] ), highlight, suggestion[1])
 
   def _token_string( self, file ):
     token = os.path.splitext(file)[-1]
