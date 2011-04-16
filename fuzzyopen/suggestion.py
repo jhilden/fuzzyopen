@@ -24,16 +24,14 @@ class FuzzySuggestion:
 
   def _load_file( self ):
     self._fileset = []
-    for dirname, dirnames, filenames in os.walk( self._filepath ):
-      if not self._show_hidden:
-        for d in dirnames[:]:
-          if d[0] == '.':
-            dirnames.remove(d)
-      path = os.path.relpath( dirname, self._filepath )
-      for filename in filenames:
-        if (self._show_hidden or filename[0] != '.'):
-          if os.path.splitext( filename )[-1][1:] not in self._excluded:
-            self._fileset.append( os.path.normpath(os.path.join( path, filename ) ) )
+    for path, dirnames, filenames in os.walk( self._filepath ):
+      if (self._show_hidden or path.find("/.")==-1):
+        if self._check_path(path):
+          relpath = os.path.relpath( path, self._filepath )
+          for filename in filenames:
+            if (self._show_hidden or filename[0] != '.'):
+              if os.path.splitext( filename )[-1][1:] not in self._excluded:
+                self._fileset.append( os.path.normpath(os.path.join( relpath, filename ) ) )
     self._fileset = sorted( self._fileset )
     debug("Loaded files count = %d" % len(self._fileset))
 
@@ -110,4 +108,10 @@ class FuzzySuggestion:
       return a.lower() == b.lower()
     else:
       return a == b
-
+  
+  def _check_path( self, path):
+    excluded_path_parts = ["/public/data", "/public/fonts", "/public/images", "/vendor", "/tmp", "/log", "/db/sphinx"]
+    for part in excluded_path_parts:
+      if path.find(part)!=-1:
+        return False
+    return True
